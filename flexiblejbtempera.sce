@@ -86,6 +86,7 @@ function [listseqjobs, litaoexec] = getFromTempera (numbreak)
                      BFListExec = vizinhoListExec
                      foodsaceitos = [ foodsaceitos FitVizinho ]
                      litaoexec($+1) = BFListExec // salva as fontes de alimento encontradas                  
+                     listseqjobs($+1) = vizinhoSeqjb
 //                     listseqjobs($+1) = vizinhoSeqjb
                      aceitos = aceitos +1
                      
@@ -1437,10 +1438,13 @@ endfunction
 // Gera as fontes iniciais de alimento em Foods e a sequência de execução dos Jobs
 //[FoodsSeqJob, Foods]= gen_Foods(maxCycle)
 
-[listseqjb, listexec2] = getFromTempera (maxCycle*2) // Retorna
-         
 listexec = list()
 FoodsSeqJob = list()
+
+[listseqjb, listexec2] = getFromTempera (maxCycle*2) // Retorna
+         
+//printf("Lenght: %d\n", length(listseqjb))
+//printf("Lenght: %d\n", length(listexec2))
 
 [fitnesvetT, printseql]=list_fitess(listseqjb, listexec2)
  
@@ -1455,10 +1459,10 @@ for tdAd=1:maxCycle
 end
 Foods = listexec
 
- fitnesvet = list()
- printseql = list()
- BestFitness = 1000000000
- [fitnesvet, printseql]=list_fitess(FoodsSeqJob, Foods)
+fitnesvet = list()
+printseql = list()
+BestFitness = 1000000000
+[fitnesvet, printseql]=list_fitess(FoodsSeqJob, Foods)
 
 tasks = []
 
