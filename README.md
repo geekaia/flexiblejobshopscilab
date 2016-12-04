@@ -12,3 +12,7 @@ plot2d(histmin)
 
 Step 4 - Gerar gráfico de Gantt: 
 gera_grafico_gantt(lastToPrintBetter)
+
+
+Apresentação do trabalho: 
+https://docs.google.com/presentation/d/1eDssu1rR2M-Yhv79TKOvLJMVwGg5L0SO1gvX9MjfIws/edit?usp=sharing
