@@ -753,7 +753,7 @@ function [listseqjobs, litaoexec]= gen_Foods(tamPop)
 endfunction
 
 funcprot(0)
-function pornografico()
+function pngrafico()
     gera_grafico_gantt(lastToPrintBetter)
 endfunction
 
@@ -2036,4 +2036,4 @@ for r=1:runtime
   rand('seed',getdate('s'))
  end
 
-// COMANDO PARA GERAR O GRÁFICO DE GANTT --- pornografico
+// COMANDO PARA GERAR O GRÁFICO DE GANTT --- pngrafico

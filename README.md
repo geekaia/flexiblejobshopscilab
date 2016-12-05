@@ -14,7 +14,7 @@ plot2d(histmin)
 Para continuar digite resume
 
 Step 4 - Gerar gráfico de Gantt: 
-gera_grafico_gantt(lastToPrintBetter)
+gera_grafico_gantt(lastToPrintBetter) | pngrafico
 
 
 Apresentação do trabalho: 
