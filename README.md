@@ -1,4 +1,4 @@
-# flexiblejobshopscilab
+# Flexible Job Shops with scilab
 
 Step 1 - Modificar os arquivos .txt das ops e tempos 
 Linhas: 613 e 614
