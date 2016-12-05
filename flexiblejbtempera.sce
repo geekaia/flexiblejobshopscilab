@@ -23,6 +23,11 @@ endfunction
 
 funcprot(0)
 function [listseqjobs, litaoexec] = getFromTempera (numbreak)
+    
+    // Código gerado a partir do Slides abaixo
+    // http://www.lac.inpe.br/~lorena/cap/Aula_C01.pdf e 
+    // http://www.decom.ufop.br/prof/marcone/Disciplinas/InteligenciaComputacional/InteligenciaComputacional.htm
+  
     // Implementa a tempera simulada com o intuito de 
     // otimizar a entrada de novos individuos na execução 
     // Gera a solução inicial -- melhor fonte de alimento
