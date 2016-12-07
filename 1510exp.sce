@@ -1,4 +1,4 @@
-tic()
+
 hist = []
 histmin = []
 
@@ -597,9 +597,9 @@ populacao = [;]
 
 
 
-qualArq=5 // 1 para 3x3; 2 4x5; 3 8x8,  4 10x10 e 5 para 15x10 
+qualArq=5 // 1 para 3x3; 2 4x5; 3 8x8 e  4 10x10
 
-// Os tamanhos e metass são os melhores resultados obtidos até o presente momento
+// Os tamanhos e metas são os melhores resultados obtidos até o presente momento
 // 4 tarefas 
 if qualArq == 1 then
     arqOp = "op3x3.txt"
@@ -619,15 +619,14 @@ elseif qualArq == 3 then
 elseif qualArq == 4 then
     arqOp = "op10x10.txt"
     artT= "tempos10x10.txt"    
-    meta = 7
-    maxt = 10000
-else
+    meta = 8
+    maxt = 1367
+else 
     arqOp = "op15x10.txt"
     artT= "tempos15x10.txt"
     meta = 16
-    maxt = 3000
+    maxt = 1500
 end
-
 
 
 op_jobs = fscanfMat(arqOp);
@@ -641,7 +640,7 @@ num_jobs = length(op_jobs)
 
 maxop = max(num_jobs)
 
-//runtime = 50; // O algoritmo pode ser executado diversas vezes a fim de avaliar a robustes
+runtime = 50; // O algoritmo pode ser executado diversas vezes a fim de avaliar a robustes
 
 //printf("Num maq: %d\n", num_maq)
 
@@ -1468,64 +1467,55 @@ endfunction
 
 // Gera as fontes iniciais de alimento em Foods e a sequência de execução dos Jobs
 //[FoodsSeqJob, Foods]= gen_Foods(maxCycle)
+
+listexec = list()
+FoodsSeqJob = list()
+
+[listseqjb, listexec2] = getFromTempera (maxCycle*2) // Retorna
+         
+//printf("Lenght: %d\n", length(listseqjb))
+//printf("Lenght: %d\n", length(listexec2))
+
+[fitnesvetT, printseql]=list_fitess(listseqjb, listexec2)
+ 
+for tdAd=1:maxCycle
+     GlobalMinT = min(fitnesvetT)
+     indexfitT = find(fitnesvetT==GlobalMinT)
+     indexfitT = indexfitT(1)
+     fdadd = listexec2(indexfitT)
+     fitnesvetT(indexfitT) = 1000000
+     listexec($+1) =  listexec2(indexfitT)
+     FoodsSeqJob($+1) = listseqjb(indexfitT)
+end
+Foods = listexec
+
+fitnesvet = list()
+printseql = list()
+BestFitness = 1000000000
+[fitnesvet, printseql]=list_fitess(FoodsSeqJob, Foods)
+
+tasks = []
+
+
+bestfood = list()
+indexfit = 1
+
+
+// Se Passar 20 vezes e não se encontrou nenhuma solução nova 
+// Gera-se mais 20 novas soluções
+contadormelhora = 0
+lastbetter = 10000000 // O melhor dos resultados o último 
+
+// Lista de intervalos livres o que torna viável para 
+// a implementação do WorstFit e BestFit
+listaLivres = list()
+
+
 resultadoExp = [;]
 
 for expT=1:10
-    printf("\n\EXECUÇÃO: %d \n\n", expT)
-
-
-
-
-
-
-
-    tinitEx =getdate("s")
-
-    listexec = list()
-    FoodsSeqJob = list()
+    tInicialT = timer()
     
-    [listseqjb, listexec2] = getFromTempera (maxCycle*2) // Retorna
-             
-    //printf("Lenght: %d\n", length(listseqjb))
-    //printf("Lenght: %d\n", length(listexec2))
-    
-    [fitnesvetT, printseql]=list_fitess(listseqjb, listexec2)
-     
-    for tdAd=1:maxCycle
-         GlobalMinT = min(fitnesvetT)
-         indexfitT = find(fitnesvetT==GlobalMinT)
-         indexfitT = indexfitT(1)
-         fdadd = listexec2(indexfitT)
-         fitnesvetT(indexfitT) = 1000000
-         listexec($+1) =  listexec2(indexfitT)
-         FoodsSeqJob($+1) = listseqjb(indexfitT)
-    end
-    Foods = listexec
-    
-    fitnesvet = list()
-    printseql = list()
-    BestFitness = 1000000000
-    [fitnesvet, printseql]=list_fitess(FoodsSeqJob, Foods)
-    
-    tasks = []
-    
-    
-    bestfood = list()
-    indexfit = 1
-    
-    
-    // Se Passar 20 vezes e não se encontrou nenhuma solução nova 
-    // Gera-se mais 20 novas soluções
-    contadormelhora = 0
-    lastbetter = 10000000 // O melhor dos resultados o último 
-    
-    // Lista de intervalos livres o que torna viável para 
-    // a implementação do WorstFit e BestFit
-    listaLivres = list()
-    
-    
- 
-
  // executa o ABC
 for r=1:maxt
      nTask=[]
@@ -2018,14 +2008,6 @@ for r=1:maxt
   //  lastToPrintBetter = printseql(BestInd)
   //  Foods(paraexcluir) = BestFood
   printf("Best fitness %d no r=%d BestInd %d\n", BestFitness, r, BestInd)
-   if meta >= BestFitness then
-//    [l,c] = size(resultadoExp)
-    tfinal = getdate("s") - tinitEx
-  
-    resultadoExp(expT,:) = [r BestFitness tfinal] // quantidade de iterações fitness e tempo total
-    
-    break
-  end
 //    printf("MelhorAgora;%d\n", BestFitness)
   
   // Inicializa na primeira iteração do laço mais externo
@@ -2049,13 +2031,19 @@ for r=1:maxt
 
   
   rand('seed',getdate('s'))
+  
+  if meta == BestFitness then
+    [l,c] = size(resultadoExp)
+    tfinalT = timer() - tInicialT
+    resultadoExp((l+1),:) = [r BestFitness tfinalT] // quantidade de iterações fitness e tempo total
+    break
+  end
 end
 end
-
-printf("Arquivo: %s\n", artT)
-
 
 pngrafico
 
 //  plot2d(histmin)
+
+
 // COMANDO PARA GERAR O GRÁFICO DE GANTT --- pngrafico
