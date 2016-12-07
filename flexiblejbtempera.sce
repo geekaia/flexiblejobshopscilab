@@ -597,7 +597,7 @@ populacao = [;]
 
 
 
-qualArq=5 // 1 para 3x3; 2 4x5; 3 8x8,  4 10x10 e 5 para 15x10 
+qualArq=4 // 1 para 3x3; 2 4x5; 3 8x8,  4 10x10 e 5 para 15x10 
 
 // Os tamanhos e metass são os melhores resultados obtidos até o presente momento
 // 4 tarefas 

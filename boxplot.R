@@ -1,3 +1,6 @@
+
+# Geração de gráficos
+
 library("ggplot2", lib.loc="~/R/x86_64-pc-linux-gnu-library/3.3")
 
 # carrega o arquivo com os dados
