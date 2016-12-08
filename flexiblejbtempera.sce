@@ -2019,7 +2019,6 @@ for r=1:maxt
 //     printf("Zera!!!\n")
   end
 
-  
   //  lastToPrintBetter = printseql(BestInd)
   //  Foods(paraexcluir) = BestFood
   hist = [hist BestFitness]
