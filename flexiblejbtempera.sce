@@ -2022,12 +2022,17 @@ for r=1:maxt
   
   //  lastToPrintBetter = printseql(BestInd)
   //  Foods(paraexcluir) = BestFood
+  hist = [hist BestFitness]
+  histmin = [histmin min(hist)]
   printf("Best fitness %d no r=%d BestInd %d\n", BestFitness, r, BestInd)
-   if meta >= BestFitness then
+   if meta >= BestFitness | maxt == r  then
 //    [l,c] = size(resultadoExp)
     tfinal = getdate("s") - tinitEx
+    
+    onde = find(histmin==BestFitness)
+    onde = onde(1)
   
-    resultadoExp(expT,:) = [r BestFitness tfinal] // quantidade de iterações fitness e tempo total
+    resultadoExp(expT,:) = [onde BestFitness tfinal] // quantidade de iterações fitness e tempo total
     
     break
   end
@@ -2049,8 +2054,7 @@ for r=1:maxt
   end
   
   
-  hist = [hist BestFitness]
-  histmin = [histmin min(hist)]
+
 
   
   rand('seed',getdate('s'))
