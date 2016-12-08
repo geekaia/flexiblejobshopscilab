@@ -1470,13 +1470,11 @@ endfunction
 //[FoodsSeqJob, Foods]= gen_Foods(maxCycle)
 resultadoExp = [;]
 
+
+totalCostFit = 0
+
 for expT=1:10
-    printf("\n\EXECUÇÃO: %d \n\n", expT)
-
-
-
-
-
+//    printf("\n\EXECUÇÃO: %d \n\n", expT)
 
 
     tinitEx =getdate("s")
@@ -1506,7 +1504,6 @@ for expT=1:10
     printseql = list()
     BestFitness = 1000000000
     [fitnesvet, printseql]=list_fitess(FoodsSeqJob, Foods)
-    
     tasks = []
     
     
@@ -1549,7 +1546,7 @@ for r=1:maxt
      tinitEmpregada  = timer();
      
      
-     
+     for kkt=1:3 // Efetua este laço 3 vezes, pois para cada job somente 1 operação é mudada por laço
       // Fase da abelha empregada 
       while (( iter <=maxCycle ))
           listaExecucaoAt = list()
@@ -1564,10 +1561,16 @@ for r=1:maxt
           fitnessI = fitnesvet(iter)
           
           maior = 0
+//          for kk=1:10
           for contador=1:num_jobs
              nTask = [] // inicializa com 0 itens 
 //             printf("Iter : %d\n", iter)
+//              dtInit = getdate("s")
              [fitnessOld, dataprintseq] = calcfitness2(listaExecucaoAt, seqjob)
+             
+//             totalCostFit = (totalCostFit + getdate("s"))-dtInit
+//             printf("Total Cost %5.30f\n", totalCostFit)
+             
              jobsel = ceil(rand()*length(seqjob)) // selecionav um index
              jobsel = seqjob(jobsel)
           
@@ -1789,6 +1792,8 @@ for r=1:maxt
          iter = iter + 1
         //          printf("iter: %d\n", iter)
       end // Fim empregadas
+      end // teste
+      
       
       
        tinitEmpregada  = timer() - tinitEmpregada;
