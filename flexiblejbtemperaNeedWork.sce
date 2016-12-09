@@ -1,4 +1,4 @@
-
+tic()
 hist = []
 histmin = []
 
@@ -23,6 +23,11 @@ endfunction
 
 funcprot(0)
 function [listseqjobs, litaoexec] = getFromTempera (numbreak)
+    
+    // Código gerado a partir do Slides abaixo
+    // http://www.lac.inpe.br/~lorena/cap/Aula_C01.pdf e 
+    // http://www.decom.ufop.br/prof/marcone/Disciplinas/InteligenciaComputacional/InteligenciaComputacional.htm
+  
     // Implementa a tempera simulada com o intuito de 
     // otimizar a entrada de novos individuos na execução 
     // Gera a solução inicial -- melhor fonte de alimento
@@ -216,51 +221,33 @@ function matdif =  montaDiffs(lToPrintBetter)
 endfunction
 
 funcprot(0)
-function [exclistAt, dataprintseqNewInit] = otimizaWorst (comida)
+function [exclistAt, dataprintseqNewInit] = otimizaWorst (comida, seqcomida)
     // Uma tentativa de otimizar baseando-se no espaço entre as operações
     exclistAt = comida
     exclist = comida
-    [fitnessInicial, dataprintseqNewInit] = calcfitness(exclistAt)
-//    printf("Ok1\n")
+    [fitnessInicial, dataprintseqNewInit] = calcfitness2(exclistAt, seqcomida)
+
     matdif =  montaDiffs(dataprintseqNewInit)
-//    printf("Ok2\n")
     [l,c] = size(matdif)
     for i=1:l
-//        try
           jobOpt = matdif(i,1)
           opOpt = matdif(i,2 )
           maqOpt = matdif(i,3 )
-//          printf("Job %d op %d maq %d\n",jobOpt, opOpt,maqOpt)
-          // Pega as máquinas que podem executar a tarefa de maneira aleatória
-//          if jobOpt == 0 then 
-//                continue
-//            end
-            
-            newMaq = getMaq(jobOpt, opOpt, maqOpt)
-         
-            // Avalia a nova solução
-            exclist = change_machine(exclist, jobOpt, opOpt, newMaq)
-//            printf("Machine change %d to %d\n",maqOpt, newMaq )
-            [fitnessNew, dataprintseqNew] = calcfitness(exclist)
-            
-            res = (dataprintseqNewInit == dataprintseqNew)
-            fres = find(res==%T) // Procura para verificar há algum valor true 
-            if length(fres) ~= 0 & fitnessNew <= fitnessInicial then
-                exclistAt = exclist
-                dataprintseqNewInit = dataprintseqNew
-//                printf("Consegui mudar a configuração de %d para %d \n", fitnessInicial, fitnessNew)
-    //            break
-            end
-//        catch
-//            b=1
-//        end
-        
-        
-//        printf("Sem sucesso!!! %d\n ",i)
+          
+          newMaq = getMaq(jobOpt, opOpt, maqOpt)
+          exclist = change_machine(exclist, jobOpt, opOpt, newMaq)
+
+           // Avalia a nova solução
+          [fitnessNew, dataprintseqNew] = calcfitness2(exclist, seqcomida)
+          res = (dataprintseqNewInit == dataprintseqNew)
+          fres = find(res==%T) // Procura para verificar há algum valor true 
+          if length(fres) ~= 0 & fitnessNew <= fitnessInicial then
+              exclistAt = exclist
+              dataprintseqNewInit = dataprintseqNew
+          end
     end
     
 endfunction
-
 
 
 
@@ -610,9 +597,42 @@ populacao = [;]
 
 
 
+qualArq=3 // 1 para 3x3; 2 4x5; 3 8x8,  4 10x10 e 5 para 15x10 
+
+// Os tamanhos e metass são os melhores resultados obtidos até o presente momento
 // 4 tarefas 
-op_jobs = fscanfMat("op10x10.txt");
-tempo_jobs = fscanfMat("tempos10x10.txt");
+if qualArq == 1 then
+    arqOp = "op3x3.txt"
+    artT= "tempos3x3.txt"
+    meta = 15 // qual vier primeiro ou a meta ou a quantidade de iterações
+    maxt = 15
+elseif  qualArq == 2 then
+    arqOp = "op4x5.txt"
+    artT= "tempos4x5.txt"
+    meta = 11
+    maxt = 100
+elseif qualArq == 3 then
+    arqOp = "op8x8.txt"
+    artT= "tempos8x8.txt"
+    meta = 17
+    maxt = 2628
+elseif qualArq == 4 then
+    arqOp = "op10x10.txt"
+    artT= "tempos10x10.txt"    
+    meta = 7
+    maxt = 10000
+else
+    arqOp = "op15x10.txt"
+    artT= "tempos15x10.txt"
+    meta = 16
+    maxt = 3000
+end
+
+
+
+op_jobs = fscanfMat(arqOp);
+tempo_jobs = fscanfMat(artT);
+
 listaPop = list()
 
 // Gera um configuração possível 
@@ -621,7 +641,7 @@ num_jobs = length(op_jobs)
 
 maxop = max(num_jobs)
 
-runtime = 50; // O algoritmo pode ser executado diversas vezes a fim de avaliar a robustes
+//runtime = 50; // O algoritmo pode ser executado diversas vezes a fim de avaliar a robustes
 
 //printf("Num maq: %d\n", num_maq)
 
@@ -687,9 +707,9 @@ function listaExecucao = getlistExec(seq_job)
                for j=1:op_at_job
                    machineSelExecutetask =getnumrand (num_maq,jb,j) 
                    
-                   if machineSelExecutetask == 0
-                        printf("Foi selecionado 0 \n")
-                   end
+//                   if machineSelExecutetask == 0
+//                        printf("Foi selecionado 0 \n")
+//                   end
                    
                    mTask($+1) = machineSelExecutetask
                end
@@ -719,18 +739,7 @@ function listaExecucao = getlistExec(seq_job)
            end
            listaExecucao(jb) = mtaskmin
            end
-//           listaAleat(jb) = mTask
-//           listaMin(jb) = mtaskmin
-           
-//           
         end
-
-//         
-//         if r <= p then
-//             listaExecucao = listaAleat
-//         else
-//             listaExecucao = listaMin
-//         end
 endfunction
 
 funcprot(0)
@@ -753,7 +762,7 @@ function [listseqjobs, litaoexec]= gen_Foods(tamPop)
 endfunction
 
 funcprot(0)
-function pornografico()
+function pngrafico()
     gera_grafico_gantt(lastToPrintBetter)
 endfunction
 
@@ -1071,10 +1080,11 @@ function [ tmLastInit, tmLastFim ]=  getTime (mt, jb, op)
 endfunction
 
 
-function [listaExecucao,lastToPrintBetter ] =  melhorarWorst(lst, lstPrintBetter)
+function [listaExecucao,lastToPrintBetter, ftNew ] =  melhorarWorst(lst, lstPrintBetter, myseq)
     listaExecucao = lst
     lastToPrintBetter = lstPrintBetter
-    [ftNewI, dtseqNew] = calcfitness(lst) 
+    [ftNewI, dtseqNew] = calcfitness2(lst, myseq)
+    ftNew = ftNewI
     lastToPrintBetter = dtseqNew
 //    printf("Primeiro fitness %d\n", ftNewI)
     sair=0
@@ -1103,16 +1113,12 @@ function [listaExecucao,lastToPrintBetter ] =  melhorarWorst(lst, lstPrintBetter
             end
             
         end
-        
-//        printf("Melhorarei o %dº pior  t worst: %d\n", MaxMelhorar, length(worstList))
-        
+     
         if contfind > 20 then 
             pior = worstList(1)
         else
             pior = worstList(MaxMelhorar)
         end
-        
-        
         
         // Procura a máquina que tem o maior os 3 maiores fitness e o seleciona para melhorar 
         maistempoID = find(lastToPrintBetter(:,5)==pior)
@@ -1133,18 +1139,18 @@ function [listaExecucao,lastToPrintBetter ] =  melhorarWorst(lst, lstPrintBetter
             for k=1:length(quantOps)
                 // Procura por uma op K e tenta otimizá-la 
                 // considera-se otimizado quando o fitness é menor ou igual ao que foi obtido anteriormente 
-                [listaExecucaoAfter, dtseqNew, tipo, ftNew]=findFitMachine(listaExecucao, job, k)
-                [ftNew, dtseqNew] = calcfitness(listaExecucaoAfter) 
+                [listaExecucaoAfter, dtseqNew, tipo, ftNew]=findFitMachine(listaExecucao, job, k, myseq, -1)
+                [ftNew2, dtseqNew] = calcfitness2(listaExecucaoAfter, myseq) 
         
-                if ftNew <= ftNewI then 
-                    ftNewI  = ftNew
+                if ftNew2 <= ftNewI then 
+                    ftNewI  = ftNew2
                     listaExecucao = listaExecucaoAfter
                     lastToPrintBetter = dtseqNew
+                    ftNew = ftNew2
                     
-                    
-                    if ftNew < ftNewI then
+                    if ftNew2 < ftNewI then
                         sair=1
-                        printf("Melhorei para %d\n", ftNew)
+//                        printf("Melhorei para %d\n", ftNew)
                         break
                     end
                      
@@ -1159,19 +1165,17 @@ function [listaExecucao,lastToPrintBetter ] =  melhorarWorst(lst, lstPrintBetter
         if sair==1 then 
             break
         end
-        
     end
 endfunction
 
 
 funcprot(0)
-function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachine(listaExc, jobSel, opSel)
+function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachine(listaExc, jobSel, opSel, myseq,estselect)
     numLoc = -1
-    
     
     // Conceitua-se best o lugar que deixa o lugar com o menor tempo
     // Aqui pode ser melhor fit ou o wors (pior) encaixe
-    [fitnessBestPlace, dataprintseqBestPlace] = calcfitness(listaExc)
+    [fitnessBestPlace, dataprintseqBestPlace] = calcfitness2(listaExc, myseq)
     fitnessNew = fitnessBestPlace
     dataPrintFirstplace = dataprintseqBestPlace
     livres = getFree(dataprintseqBestPlace)
@@ -1181,7 +1185,11 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachin
     // Por padrão a lista não será modificada 
     listaOtimizada = listaExc
     
-    bestOrWorst = ceil(rand()*3) // 1 Best Fit -- menor espaço | 2 - worst fit -- maior espaço  | 3 --FirstFIT | 4 - FirstMustBe Optimized
+    bestOrWorst = ceil(rand()*4) // 1 Best Fit -- menor espaço | 2 - worst fit -- maior espaço  | 3 --FirstFIT | 4 - FirstMustBe Optimized
+    
+    if estselect==-1 then
+        bestOrWorst = ceil(rand()*3) // por causa do otimiza worst
+    end
     
     // Tempo da máquinao m
     dtjob = listaJobs(jobSel)
@@ -1218,29 +1226,49 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachin
     listaMaqPos = [] // lista de tempos usados em cada máquina 
     tipo="generico"
     bestTimefit = 100000000000
+    
+    err=0
     if (bestOrWorst == 1) then 
         gapBetter = 10000000000000 // o burado deve menor ou igual
 //        printf("BESTFIT\n")
         tipo = "BESTFIT"
-    elseif bestOrWorst == 2 then
+    elseif bestOrWorst == 2 then // NÃO HÁ NENHUM BENEFÍCIO
         gapBetter = 0 // o burado deve ser maior ou igual para ser melhor
         tipo = "WORSTFIT"
 //        printf("WORSTFIT\n")
-    elseif bestOrWorst == 4 & can == 1 then
-         [listaOtimizada, dataprintseqBestPlace] = otimizaWorst (listaExc)
+    elseif bestOrWorst == 3 then
+         [listaOtimizadaN, dataprintseqBestPlaceN] = otimizaWorst (listaExc, myseq)
          tipo = "PIORLOCALIZADO"
-         [fitnessNew, dataprintseqBestPlace] = calcfitness(listaOtimizada)
-//         printf("PIORLOCALIZADO \n")
+         [fitnessNewT, dataprintseqBestPlaceN] = calcfitness2(listaOtimizadaN, myseq)
+    elseif bestOrWorst == 4 then  
+       try
          
+        [listaOtimizadaN, dataprintseqBestPlaceN, tipo, fitnessNewT]=melhoraPrimeiro(listaExc, myseq)
+        [fitnessNewT, dataprintseqBestPlaceN] = calcfitness2(listaOtimizadaN, myseq)
+        tipo="MELHORAPRIMEIRO"
+       
+        catch
+           err=1
+//            printf("Erro!!! - sem tempo para corrigir sorry1!!!!\n")
+        end
     else
         gapBetter =10000000000000000
         tipo = "FIRSTFIT"
 //        printf("FIRSTFIT\n")
+    end 
+
+    if (bestOrWorst == 3 | bestOrWorst == 4) & err==0  then
+        if fitnessNewT <= fitnessBestPlace then 
+            listaOtimizada = listaOtimizadaN
+            dataprintseqBestPlace = dataprintseqBestPlaceN
+            fitnessNew  = fitnessNewT
+//         printf("PIORLOCALIZADO \n")
+        end
     end
     
     bestFitID = 1
     bestFitIDlivre = 1
-    
+
     // Pega o tempo inicio e Fim da última máquina se a operação for maior que 1 
     // Quando definido isto, preferencialmente deseja-se que o início seja a melhor posição 
     
@@ -1253,13 +1281,10 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachin
     sair = 0
     // First must be First
     
-    
-    
-   
     // Procura em todas as máquinas por 
     for i=1:length(tmp)
         
-        if bestOrWorst == 4 then
+        if bestOrWorst == 3 then
             break
         end
         
@@ -1323,16 +1348,15 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachin
         encontrei = 1
         listaExecucaoN = change_machine(listaExc, jobSel, opSel, newMaq)
 //printf("Ok jb %d op %d mq %d\n ", jobSel, opSel, newMaq)
-        [fitnessNew, dataprintseqBestPlace] = calcfitness(listaExecucaoN)
-        
-        
+        [fitnessNew, dataprintseqBestPlace] = calcfitness2(listaExecucaoN, myseq)
+
+
         if fitnessNew <= fitnessBestPlace then 
             listaOtimizada = listaExecucao
         else // Não atualiza nada se não for detectado nenhuma melhora
             listaExecucao = listaExc
             listaOtimizada = listaExc
             dataprintseqBestPlace = dataPrintFirstplace
-            tipo='0'
             fitnessNew = fitnessBestPlace
         end
         
@@ -1344,11 +1368,12 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachin
 
 endfunction
 
-function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=melhoraPrimeiro(listaExc) 
-    [fitnessBestPlace, dataprintseqBestPlace] = calcfitness(listaExc)
+function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=melhoraPrimeiro(listaExc, myseq) 
+    [fitnessBestPlace, dataprintseqBestPlace] = calcfitness2(listaExc, myseq)
     fitnessNew = fitnessBestPlace
     livres = getFree(dataprintseqBestPlace)
     sair=0
+
 
 //        printf("OPT to init!!!\n")
     // Tenta jogar todas as primeiras atividades para o início    
@@ -1394,6 +1419,11 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=melhoraPrimei
                 if length(hasHere) ~= 0 then 
                     idL = hasHere(1)
                     newMaq = mqL
+                    
+//                    printf("ENCONTREI!!!!!!!!!!\N")
+                    listaExecucao = change_machine(listaExc, jobNoInit, opNotInit, newMaq)
+                    [fitnessBestPlace, dataprintseqBestPlace] = calcfitness2(listaExecucao, myseq)
+//                     printf("ERRRRo\nn\n\n\n\n")
                     sair=1
                 end // end achou
             end // end maqlivres
@@ -1413,10 +1443,11 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=melhoraPrimei
     
         
     if fitnessNew <= fitnessBestPlace then 
+//        printf("Melhorei First place!!!\n")
         listaOtimizada = listaExecucao
-        if fitnessNew < fitnessBestPlace then 
-            printf("Melhorei com o primeiro!!!\n")
-        end
+//        if fitnessNew < fitnessBestPlace then 
+//            printf("Melhorei com o primeiro!!!\n")
+//        end
         
     else // Não atualiza nada se não for detectado nenhuma melhora
         
@@ -1437,54 +1468,63 @@ endfunction
 
 // Gera as fontes iniciais de alimento em Foods e a sequência de execução dos Jobs
 //[FoodsSeqJob, Foods]= gen_Foods(maxCycle)
+resultadoExp = [;]
 
-listexec = list()
-FoodsSeqJob = list()
 
-[listseqjb, listexec2] = getFromTempera (maxCycle*2) // Retorna
-         
-//printf("Lenght: %d\n", length(listseqjb))
-//printf("Lenght: %d\n", length(listexec2))
+totalCostFit = 0
 
-[fitnesvetT, printseql]=list_fitess(listseqjb, listexec2)
+for expT=1:10
+//    printf("\n\EXECUÇÃO: %d \n\n", expT)
+
+
+    tinitEx =getdate("s")
+
+    listexec = list()
+    FoodsSeqJob = list()
+    
+    [listseqjb, listexec2] = getFromTempera (maxCycle*2) // Retorna
+             
+    //printf("Lenght: %d\n", length(listseqjb))
+    //printf("Lenght: %d\n", length(listexec2))
+    
+    [fitnesvetT, printseql]=list_fitess(listseqjb, listexec2)
+     
+    for tdAd=1:maxCycle
+         GlobalMinT = min(fitnesvetT)
+         indexfitT = find(fitnesvetT==GlobalMinT)
+         indexfitT = indexfitT(1)
+         fdadd = listexec2(indexfitT)
+         fitnesvetT(indexfitT) = 1000000
+         listexec($+1) =  listexec2(indexfitT)
+         FoodsSeqJob($+1) = listseqjb(indexfitT)
+    end
+    Foods = listexec
+    
+    fitnesvet = list()
+    printseql = list()
+    BestFitness = 1000000000
+    [fitnesvet, printseql]=list_fitess(FoodsSeqJob, Foods)
+    tasks = []
+    
+    
+    bestfood = list()
+    indexfit = 1
+    
+    
+    // Se Passar 20 vezes e não se encontrou nenhuma solução nova 
+    // Gera-se mais 20 novas soluções
+    contadormelhora = 0
+    lastbetter = 10000000 // O melhor dos resultados o último 
+    
+    // Lista de intervalos livres o que torna viável para 
+    // a implementação do WorstFit e BestFit
+    listaLivres = list()
+    
+    
  
-for tdAd=1:maxCycle
-     GlobalMinT = min(fitnesvetT)
-     indexfitT = find(fitnesvetT==GlobalMinT)
-     indexfitT = indexfitT(1)
-     fdadd = listexec2(indexfitT)
-     fitnesvetT(indexfitT) = 1000000
-     listexec($+1) =  listexec2(indexfitT)
-     FoodsSeqJob($+1) = listseqjb(indexfitT)
-end
-Foods = listexec
 
-fitnesvet = list()
-printseql = list()
-BestFitness = 1000000000
-[fitnesvet, printseql]=list_fitess(FoodsSeqJob, Foods)
-
-tasks = []
-histTmp=[]
-
-bestfood = list()
-indexfit = 1
-
-
-// Se Passar 20 vezes e não se encontrou nenhuma solução nova 
-// Gera-se mais 20 novas soluções
-contadormelhora = 0
-lastbetter = 10000000 // O melhor dos resultados o último 
-
-// Lista de intervalos livres o que torna viável para 
-// a implementação do WorstFit e BestFit
-listaLivres = list()
-
-
-tInit = getdate("s")
  // executa o ABC
-for r=1:runtime
-    tInitr = getdate("s")
+for r=1:maxt
      nTask=[]
      // Fitness das comidas 
       // reinicia os contadores trial( de julgamento)
@@ -1503,6 +1543,10 @@ for r=1:runtime
      
      canOpAll = ceil(rand()*num_maq)
      
+     tinitEmpregada  = timer();
+     
+     
+     for kkt=1:3 // Efetua este laço 3 vezes, pois para cada job somente 1 operação é mudada por laço
       // Fase da abelha empregada 
       while (( iter <=maxCycle ))
           listaExecucaoAt = list()
@@ -1517,10 +1561,16 @@ for r=1:runtime
           fitnessI = fitnesvet(iter)
           
           maior = 0
+//          for kk=1:10
           for contador=1:num_jobs
              nTask = [] // inicializa com 0 itens 
 //             printf("Iter : %d\n", iter)
+//              dtInit = getdate("s")
              [fitnessOld, dataprintseq] = calcfitness2(listaExecucaoAt, seqjob)
+             
+//             totalCostFit = (totalCostFit + getdate("s"))-dtInit
+//             printf("Total Cost %5.30f\n", totalCostFit)
+             
              jobsel = ceil(rand()*length(seqjob)) // selecionav um index
              jobsel = seqjob(jobsel)
           
@@ -1530,212 +1580,230 @@ for r=1:runtime
              quantMaq = num_maq
              opsel = ceil(rand()*quantOp)
             
-             qualApproach = ceil(rand()*3)
+//             qualApproach = ceil(rand()*20)
              
-             if qualApproach == 1 then 
+//             if qualApproach == 1 then 
                 // Abordagem FirstFIT, BestFit  e FirstFit
-                [listaExecucao, dataprintseqNew, tipo, fitnessNew]=findFitMachine(listaExecucaoAt, jobsel, opsel)
-             else
-                // Abordagem puramente randômica 
-                 novamaquina = getnumrand(num_maq, jobsel, opsel)
+             
+              // tenta otimizar todas as operações
+//              tipo="G"
+//              if qualApproach <19 then
+                  tinitEmpregada  = timer();
+                [listaExecucao, dataprintseqNew, tipo, fitnessNew]=findFitMachine(listaExecucaoAt, jobsel, opsel, seqjob, 1)
+                 tinitEmpregada  = timer() -tinitEmpregada;
+//                 printf("%s;%f\n",tipo, tinitEmpregada)
+//              else // tem pouca chance pois é caro computacionalmente
+//                // FOI COMENTADO POIS NÃO FOI NOTADO NENHUMA MELHORA E REPRESENTA 76% DO TEMPO
+//                tinitEmpregada  = timer(); 
+//     
+//                [listaExecucao,dataprintseqNew, fitnessNew ] =  melhorarWorst(listaExecucaoAt, dataprintseq, seqjob)
+//                
+//                tinitEmpregada  = timer() -tinitEmpregada;
+//                printf("MelhoraWorst;%f\n", tinitEmpregada)
+     
+//                printf("Melhora worst!!!\n")
+//              end
+             
                  
-                 // Nova Solução
-                 listaExecucao = change_machine(listaExecucaoAt, jobsel, opsel, novamaquina)
-                 [fitnessNew, dataprintseqNew] = calcfitness(listaExecucao)
-             end
-             
-             
-             
-             // Recalcula o fitness para avaliar se melhorou ou não
-             
-             // verifica se houve melhora no tempo total do Job
-             result = verifica(dataprintseq, dataprintseqNew, jobsel) // 1 -- melhorou e 0 -- não melhorou
+                 // Recalcula o fitness para avaliar se melhorou ou não
+                 
+                 // verifica se houve melhora no tempo total do Job
+                 result = verifica(dataprintseq, dataprintseqNew, jobsel) // 1 -- melhorou e 0 -- não melhorou
+    
+                 // Avaliação da nova solução
+                 fitness = 0
+                 
+//                 if fitnessNew <  fitnessOld then 
+//                     printf("C%s;%d\n",tipo, 1)
+//                 end
 
-             // Avaliação da nova solução
-             fitness = 0
-             
-              res1 = (dataprintseq == dataprintseqNew)
-             fres = find(res1==%T) // Procura para verificar há algum valor true 
-             if length(fres) ~= 0 & fitnessNew <= fitnessOld 
-//             if fitnessNew < fitnessOld 
+                  res1 = (dataprintseq == dataprintseqNew)
+                 fres = find(res1==%T) // Procura para verificar há algum valor true 
+                 if length(fres) ~= 0 & fitnessNew <= fitnessOld 
+    //             if fitnessNew < fitnessOld 
+                    
+                     
+                    listaExecucaoAt = listaExecucao
+                    Foods(iter) = listaExecucao
+                    
+                    trial(iter)=0;
+    //                printf("Fitness novo: %d\n", fitnessNew)
+                    fitness = fitnessNew
+                    dataprintseq = dataprintseqNew
+                elseif fitnessNew == fitnessOld & result == 1 // Melhorou 
+                    listaExecucaoAt = listaExecucao
+                    Foods(iter) = listaExecucao
+                    trial(iter)=0;
+    //                printf("Fitness novo: %d\n", fitnessNew)
+                    fitness = fitnessNew
+                    dataprintseq = dataprintseqNew
+                else
+                    listaExecucao = listaExecucaoAt
+                    trial(iter)=trial(iter)+1; // Se a solução não pode ser melhorada, incrementar +1 ao seu contador de julgamento (trial)
+    //                printf("Fitness old: %d\n", fitnessOld)
+                    fitness = fitnessOld
+                end
                 
-                 
-                listaExecucaoAt = listaExecucao
-                Foods(iter) = listaExecucao
+                // Modifica a versão final melhor  no bestFIT
+                // Atualiza os tempos de utilização de cada máquina
+    //             res1 = (lastToPrintBetter == dataprintseq)
+    //             fres = find(res1==%T)  //Procura para verificar há algum valor true 
+    //             if length(fres) ~= 0 & fitness <= BestFitness 
+                if fitness < BestFitness then
+                    // Atualiza os globais usados em quase todo o código.
+                     BestInd = iter
+                     BestFood = Foods(iter)
+                     FoodsSeqJob(iter) = seqjob
+                     BestFitness = fitness
+                     listaExecucao = BestFood
+                     lastToPrintBetter = dataprintseq
+                    
+                     // Inicia o teste das máquinas
+                     for mq=1:num_maq
+                            soma = TmpByMaq(mq)
                 
-                trial(iter)=0;
-//                printf("Fitness novo: %d\n", fitnessNew)
-                fitness = fitnessNew
-                dataprintseq = dataprintseqNew
-            elseif fitnessNew == fitnessOld & result == 1 // Melhorou 
-                listaExecucaoAt = listaExecucao
-                Foods(iter) = listaExecucao
-                trial(iter)=0;
-//                printf("Fitness novo: %d\n", fitnessNew)
-                fitness = fitnessNew
-                dataprintseq = dataprintseqNew
-            else
-                listaExecucao = listaExecucaoAt
-                trial(iter)=trial(iter)+1; // Se a solução não pode ser melhorada, incrementar +1 ao seu contador de julgamento (trial)
-//                printf("Fitness old: %d\n", fitnessOld)
-                fitness = fitnessOld
-            end
-            
-            // Modifica a versão final melhor  no bestFIT
-            // Atualiza os tempos de utilização de cada máquina
-//             res1 = (lastToPrintBetter == dataprintseq)
-//             fres = find(res1==%T)  //Procura para verificar há algum valor true 
-//             if length(fres) ~= 0 & fitness <= BestFitness 
-            if fitness < BestFitness then
-                // Atualiza os globais usados em quase todo o código.
-                 BestInd = iter
-                 BestFood = Foods(iter)
-                 BestFitness = fitness
-                 listaExecucao = BestFood
-                 lastToPrintBetter = dataprintseq
-                
-                 // Inicia o teste das máquinas
-                 for mq=1:num_maq
-                        soma = TmpByMaq(mq)
-            
-                        // percorre a lista lastToPrintBetter para montar os tempos de cada máquina
-                        [lbetter, cbetter] = size(lastToPrintBetter)
-                        for lb=1:lbetter
-                            // maq job op inicio tim ---- lastToPrintBetter
-                            if mq == lastToPrintBetter(lb,1) then
-                                fim=5
-                                inicio=4
-                                // tempoAcumulado + tempousado para uma determinada operação de um JOB
-                                soma = soma + (lastToPrintBetter(lb,fim)-lastToPrintBetter(lb,inicio))
-                                // Tempo inicial, o que identifica tb a máquina 
-                                if TmpByMaqVazioInit(mq) ~= 0 then
-                                   TmpByMaqVazioInit(mq)  = lastToPrintBetter(lb,inicio))
-                                end // teste ~=0
-                            end // teste maq 
-                        end // fim lista
-                        TmpByMaq(mq) = soma
-                  end // Fim teste máquinas
-            //         end
-                     
-                     // Procura uma Atividade que pode ser otimizada
-                     // Considera-se que uma atividade pode ser otimizada quando o tempo total é grande. Daí, busca-se a partir do início mover uma operação para outra máquina
-                     // Desde que a máquina tenha o menor tempo
-                     menortempo = min(TmpByMaq)
-                     menorTempoInd = find(TmpByMaq==menortempo) // máquina com menor tempo
-                     
-                     // IdsWorstFind
-                     idsWorst = []
-                     piores = gsort(TmpByMaq)
-                     piores2 = piores(1:2)
-                     // Procura os IDS dos dois piores de toda a configuração dos tempos do Melhor 
-                     // Tentaremos mexer nisso
-                     for pio=1:length(piores2)
-                         fndpio  = find(TmpByMaq==piores2(pio))
-                         for pioid=1:length(fndpio)
-                            // verifica se já tem na lista -- pode acontecer isso se houver 2 ou mais ids iguais --- evita duplicidade 
-                            tem = find(idsWorst==fndpio(pioid))
-                            
-                            if length(tem) == 0 then
-                                idsWorst($+1) = fndpio(pioid)
-                            end
-                         end
-                     end // End idworst
-                     
-                     // PROCURA 2 melhores
-                     idsBest = []
-                     menores = gsort(TmpByMaq,'lc','i')
-                     menores2 = menores(1:2) // os 2 primeiros que podem ser considerados
-                     for mio=1:length(menores2)
-                         fndmio  = find(TmpByMaq==menores2(mio))
-                         for mioid=1:length(fndmio)
-                            // verifica se já tem na lista -- pode acontecer isso se houver 2 ou mais ids iguais --- evita duplicidade 
-                            tem = find(idsBest==fndmio(mioid))
-                            if length(tem) == 0 then
-                                idsBest($+1) = fndmio(mioid)
-                            end
-                         end
-                     end // idbest
-                     
-                     // O trabalho deve ser sempre direcionado a melhor fonte de alimentos
-                     listaExecucao = Foods(BestInd)
-                     // Tenta melhorar a bagaça
-                     for idw=1:length(idsWorst)
-                        idMaq =  idsWorst(idw)
-                        // Carrega as atividades da bagaça de acordo com a lista de execução 
-                        ativsMaq = list() // vou adicionar um vetor com  job, operacao
-                        for itInd=1:length(listaExecucao) // itInd=job
-                            dataj = BestFood(itInd) // Datajob com as máquinas
-                            for djind=1:length(dataj) // djind=operacao do job
-                                if dataj(djind) == idMaq then
-                                    ativsMaq($+1) = [ itInd djind ] // Adiciona job e operação
-                                end
-                            end
-                        end // fim carrega atividades de uma máquina que tem muito tempo
-                        
-                        // Step 1 - verifica na lista principal se há disponibilidade nas máquinas ociosas, ou seja, quando o valor é diferente de zero (qualquer valor é admitido)
-                        // Step 2 - Adiciona na listadeexecucao e recalcula o fitness
-                        // Step 3 - Se não foi piorado o resultado global, considera-se o novo resultado
-                        for idativs=1:length(ativsMaq)
-                            
-                            // to REPLACE
-                            dtjobMaq = ativsMaq(idativs) // pega o job e a operação que executa na máquina
-                             // listaJobs inicialmente carregados do arquivo txt
-                            jobReplace = dtjobMaq(1)
-                            opReplace =  dtjobMaq(2)
-                            jobdt = listaJobs(jobReplace)
-                            
-                            for mioMaq=1:length(idsBest)
-                                mqLessTime = idsBest(mioMaq)
-                                tempo = jobdt(opReplace,mqLessTime)
+                            // percorre a lista lastToPrintBetter para montar os tempos de cada máquina
+                            [lbetter, cbetter] = size(lastToPrintBetter)
+                            for lb=1:lbetter
+                                // maq job op inicio tim ---- lastToPrintBetter
+                                if mq == lastToPrintBetter(lb,1) then
+                                    fim=5
+                                    inicio=4
+                                    // tempoAcumulado + tempousado para uma determinada operação de um JOB
+                                    soma = soma + (lastToPrintBetter(lb,fim)-lastToPrintBetter(lb,inicio))
+                                    // Tempo inicial, o que identifica tb a máquina 
+                                    if TmpByMaqVazioInit(mq) ~= 0 then
+                                       TmpByMaqVazioInit(mq)  = lastToPrintBetter(lb,inicio))
+                                    end // teste ~=0
+                                end // teste maq 
+                            end // fim lista
+                            TmpByMaq(mq) = soma
+                      end // Fim teste máquinas
+                //         end
+                         
+                         // Procura uma Atividade que pode ser otimizada
+                         // Considera-se que uma atividade pode ser otimizada quando o tempo total é grande. Daí, busca-se a partir do início mover uma operação para outra máquina
+                         // Desde que a máquina tenha o menor tempo
+                         menortempo = min(TmpByMaq)
+                         menorTempoInd = find(TmpByMaq==menortempo) // máquina com menor tempo
+                         
+                         // IdsWorstFind
+                         idsWorst = []
+                         piores = gsort(TmpByMaq)
+                         piores2 = piores(1:2)
+                         // Procura os IDS dos dois piores de toda a configuração dos tempos do Melhor 
+                         // Tentaremos mexer nisso
+                         for pio=1:length(piores2)
+                             fndpio  = find(TmpByMaq==piores2(pio))
+                             for pioid=1:length(fndpio)
+                                // verifica se já tem na lista -- pode acontecer isso se houver 2 ou mais ids iguais --- evita duplicidade 
+                                tem = find(idsWorst==fndpio(pioid))
                                 
-                                // Muda com o changeMachine 
-                                if tempo ~= 0 then
-                                    // Ok, podemos mudar 
-                                    
-                                    if canOpAll == 1 then 
-                                        
-                                        // Tenta otimizar todos os jobs
-                                        [listaExecucaoAfter, dtseqNew, tipo, ftNew]=findFitMachine(listaExecucao, jobReplace, opReplace)
-                                        
-                                    else
-                                        listaExecucaoAfter = change_machine(listaExecucao, jobReplace, opReplace, mqLessTime) // tem que definir para qual vai
-                                        [ftNew, dtseqNew] = calcfitness(listaExecucaoAfter)
-                                        
-                                         // Tenta uma otimização baseado-se no espaço de execução entre uma operação e   outra 
-//                                         [listaExecucaoAfter, dtseqNew] = otimizaWorst (listaExecucaoAfter)
-                                        // se for melhor, podemos parar 
+                                if length(tem) == 0 then
+                                    idsWorst($+1) = fndpio(pioid)
+                                end
+                             end
+                         end // End idworst
+                         
+                         // PROCURA 2 melhores
+                         idsBest = []
+                         menores = gsort(TmpByMaq,'lc','i')
+                         menores2 = menores(1:2) // os 2 primeiros que podem ser considerados
+                         for mio=1:length(menores2)
+                             fndmio  = find(TmpByMaq==menores2(mio))
+                             for mioid=1:length(fndmio)
+                                // verifica se já tem na lista -- pode acontecer isso se houver 2 ou mais ids iguais --- evita duplicidade 
+                                tem = find(idsBest==fndmio(mioid))
+                                if length(tem) == 0 then
+                                    idsBest($+1) = fndmio(mioid)
+                                end
+                             end
+                         end // idbest
+                         
+                         // O trabalho deve ser sempre direcionado a melhor fonte de alimentos
+                         listaExecucao = Foods(BestInd)
+                         // Tenta melhorar a bagaça
+                         for idw=1:length(idsWorst)
+                            idMaq =  idsWorst(idw)
+                            // Carrega as atividades da bagaça de acordo com a lista de execução 
+                            ativsMaq = list() // vou adicionar um vetor com  job, operacao
+                            for itInd=1:length(listaExecucao) // itInd=job
+                                dataj = BestFood(itInd) // Datajob com as máquinas
+                                for djind=1:length(dataj) // djind=operacao do job
+                                    if dataj(djind) == idMaq then
+                                        ativsMaq($+1) = [ itInd djind ] // Adiciona job e operação
                                     end
-                                    if ftNew <= BestFitness then  // Observar os critérios estipulados acima.
-                                        // Atualiza 
-                //                      BestInd = iter
-                                        Foods(BestInd) = listaExecucaoAfter
-                                        listaExecucao = listaExecucaoAfter
-                                        BestFitness = ftNew
-                                        lastToPrintBetter = dtseqNew
-            //                            printf("\nCONSEGUI MELHORAR AQUI!\n\n");
-                                    end // fim teste para testar 
-                                end // Teste tempo -- quando for 0 a máquina não pode executar a atividade
-                            end // fim iteração que testa a inserção de operações da maior nas menores
-                        end // Fim tentativa de mudança da máquina para outra.
-                     end// Fim melhor com mudança de máquina desde que seja possível encaixar-se abordagem ANY FIT less in use
-                     
-                     // Inicializa a lista de vazios
-                     
-                     
-            end // Fim atualiza BestFitness, Foods(BestInd) e lastToPrintBetter
-
+                                end
+                            end // fim carrega atividades de uma máquina que tem muito tempo
+                            
+                            // Step 1 - verifica na lista principal se há disponibilidade nas máquinas ociosas, ou seja, quando o valor é diferente de zero (qualquer valor é admitido)
+                            // Step 2 - Adiciona na listadeexecucao e recalcula o fitness
+                            // Step 3 - Se não foi piorado o resultado global, considera-se o novo resultado
+                            for idativs=1:length(ativsMaq)
+                                
+                                // to REPLACE
+                                dtjobMaq = ativsMaq(idativs) // pega o job e a operação que executa na máquina
+                                 // listaJobs inicialmente carregados do arquivo txt
+                                jobReplace = dtjobMaq(1)
+                                opReplace =  dtjobMaq(2)
+                                jobdt = listaJobs(jobReplace)
+                                
+                                for mioMaq=1:length(idsBest)
+                                    mqLessTime = idsBest(mioMaq)
+                                    tempo = jobdt(opReplace,mqLessTime)
+                                    
+                                    // Muda com o changeMachine 
+                                    if tempo ~= 0 then
+                                        // Ok, podemos mudar 
+                                        // Nova Solução
+                                        
+                                        if canOpAll == 1 then 
+                                            [listaExecucaoAfter, dtseqNew, tipo, ftNew]=findFitMachine(listaExecucao, jobReplace, opReplace, FoodsSeqJob(iter),1)
+                                            
+                                        else
+                                            listaExecucaoAfter = change_machine(listaExecucao, jobReplace, opReplace, mqLessTime) // tem que definir para qual vai
+                                            [ftNew, dtseqNew] = calcfitness(listaExecucaoAfter)
+                                            
+                                             // Tenta uma otimização baseado-se no espaço de execução entre uma operação e   outra 
+    //                                         [listaExecucaoAfter, dtseqNew] = otimizaWorst (listaExecucaoAfter)
+                                            // se for melhor, podemos parar 
+                                        end
+                                        if ftNew <= BestFitness then  // Observar os critérios estipulados acima.
+                                            // Atualiza 
+                    //                      BestInd = iter
+                                            Foods(BestInd) = listaExecucaoAfter
+                                            listaExecucao = listaExecucaoAfter
+                                            BestFitness = ftNew
+                                            lastToPrintBetter = dtseqNew
+                //                            printf("\nCONSEGUI MELHORAR AQUI!\n\n");
+                                        end // fim teste para testar 
+                                    end // Teste tempo -- quando for 0 a máquina não pode executar a atividade
+                                end // fim iteração que testa a inserção de operações da maior nas menores
+                            end // Fim tentativa de mudança da máquina para outra.
+                         end// Fim melhor com mudança de máquina desde que seja possível encaixar-se abordagem ANY FIT less in use
+                         
+                         // Inicializa a lista de vazios
+                         
+                         
+                end // Fim atualiza BestFitness, Foods(BestInd) e lastToPrintBetter
+           
          end
          
          iter = iter + 1
         //          printf("iter: %d\n", iter)
       end // Fim empregadas
+      end // teste
       
+      
+      
+       tinitEmpregada  = timer() - tinitEmpregada;
+//       printf("Empregadatot;%f\n", tinitEmpregada)
       
       try
         prob = (0.9*fitness/BestFitness)+0.1;
        catch
            prob = 1 // assim que são adicionados novos individuos(FOODs)
-           printf("Prob alternativa \n")
+//           printf("Prob alternativa \n")
        end
        
 //      printf("Probabilidade: %f\n", prob)
@@ -1770,8 +1838,10 @@ for r=1:runtime
               quantOp = op_jobs(jobsel)
               quantMaq = num_maq
               opsel = ceil(rand()*quantOp)
+              
               novamaquina = getnumrand(num_maq, jobsel, opsel)
              
+              tempoAle = timer()
               // Atualizando na lista que contém a sequência de jobs, operações e máquinas 
               nTask = listaExecucao(jobsel)
               nTask(opsel) = novamaquina
@@ -1779,15 +1849,16 @@ for r=1:runtime
               
 //              printf("2 - jobsel: %d\n", jobsel)
 
-              listaExecucao(jobsel) = nTask
-              mTask = nTask
+             listaExecucao(jobsel) = nTask
+             mTask = nTask
               
               // Atualiza na lista de comidas
 //            printf("Tamanho da lista antes calcfitness 2: %d\n", length(listaExecucao))
               
               [fitnessNew, dataprintseqNew] = calcfitness2(listaExecucao,seqjob)
-//             printf("Continuando\n")
-             
+//            printf("Continuando\n")
+              tempoAle = timer() - tempoAle
+//               printf("Aleatorio;%f\n",tempoAle)
 //              printf("Fitness old: %d\n", fitnessOld)
               // Avaliação da nova solução
               fitness = 0
@@ -1800,6 +1871,7 @@ for r=1:runtime
 //             fres = find(res1==%T)  //Procura para verificar há algum valor true 
 //             if length(fres) ~= 0 & fitnessNew <= fitnessOld 
               if fitnessNew < fitnessOld
+//                 printf("CAleatorio;1")
                  listaExecucaoAt = listaExecucao
                  Foods(iter) = listaExecucao
                  FoodsSeqJob(iter) = seqjob
@@ -1807,14 +1879,14 @@ for r=1:runtime
 //                 printf("Fitness novo: %d\n", fitnessNew)
                  fitness = fitnessNew
                  dataprintseq = dataprintseqNew
-            elseif fitnessNew == fitnessOld & result == 1 // & length(fres) ~= 0 // Melhorou 
-                listaExecucaoAt = listaExecucao
-                Foods(iter) = listaExecucao
-                FoodsSeqJob(iter) = seqjob
-                trial(iter)=0;
+              elseif fitnessNew == fitnessOld & result == 1 // & length(fres) ~= 0 // Melhorou 
+                 listaExecucaoAt = listaExecucao
+                 Foods(iter) = listaExecucao
+                 FoodsSeqJob(iter) = seqjob
+                 trial(iter)=0;
 //                printf("Fitness novo: %d\n", fitnessNew)
-                fitness = fitnessNew
-                dataprintseq = dataprintseqNew
+                 fitness = fitnessNew
+                 dataprintseq = dataprintseqNew
               else
                   // Mantém o resultado anterior
                  listaExecucao = listaExecucaoAt
@@ -1824,7 +1896,7 @@ for r=1:runtime
                  fitness = fitnessOld
                  
               end
-              
+
 //             res1 = (dataprintseq == lastToPrintBetter)
 //             fres = find(res1==%T) //Procura para verificar há algum valor true 
 //             if length(fres) ~= 0 &  fitness <= BestFitness  then 
@@ -1849,6 +1921,7 @@ for r=1:runtime
 
 //      printf("index: %d\n", indexfit)
   end
+ 
   
 //  abort
         
@@ -1861,7 +1934,6 @@ for r=1:runtime
   indexfit = indexfit(1)
   bestfood = Foods(indexfit)
 //  printf("Abortei FIM\n")
-       
 
   ind=find(trial==max(trial))
   hasdif = find(ind~=indexfit)
@@ -1885,7 +1957,7 @@ for r=1:runtime
          Foods(ind) = listexec(1)
          FoodsSeqJob(ind) = listseqjb(1)
 //         printf("Gerando um novo individuo!!!\n")
-         printf("contadormelhora %d\n", contadormelhora)
+//         printf("contadormelhora %d\n", contadormelhora)
      else
 //         numInd = ceil(rand()*30)
           numInd=30
@@ -1920,7 +1992,7 @@ for r=1:runtime
              indexr=0
              for tR=1:length(ondetem)
                  tem = find(jaremovidos==ondetem(tR))
-                 
+
                  if length(tem) == 0
                     indexr = ondetem(tR)
                     jaremovidos($+1) = indexr
@@ -1928,7 +2000,7 @@ for r=1:runtime
                     trial(indexr)=0; // zera o trial para que estas fontes sejam trabalhadas mais durante um tempo
                     FoodsSeqJob(indexr) = listsecT(tR)
 //                    listexec(1) = {} // remove
-                    printf("Adicionando %dº\n", newInd)
+//                    printf("Adicionando %dº\n", newInd)
 //                    printf("Len jaremovidos : %d\n", length(jaremovidos))
                     break
                  end
@@ -1947,73 +2019,23 @@ for r=1:runtime
 //     printf("Zera!!!\n")
   end
 
-  
-  // seleciona um aleatoriamente para ser excluído
-  paraexcluir = ceil(rand()*length(Foods))
-  
-  Foods(BestInd) = BestFood // sempre mantém a melhor fonte de alimento
-  listaExecucao =  BestFood
-  [fitnessNew, lastToPrintBetter] = calcfitness2(listaExecucao, FoodsSeqJob(BestInd))
-  BestFitness = fitnessNew
-  
-  
-  // King Bee 
-  // Analisa o Belhor em alguns momentos que 
-  kingAnalisar = ceil(rand()*10)
-  
-  if kingAnalisar == 10 then
-//      printf("QUEEN BEE\n")
-    [listaExecucaoNew,lastToPrintBetter ] =  melhorarWorst(BestFood, lastToPrintBetter)
-    [fitnessNew, lastToPrintBetter] = calcfitness(listaExecucaoNew)
-//     [listaExecucaoNew, lastToPrintBetter, tipo, fitnessNew]=melhoraPrimeiro(listaExecucao) 
-   
-    if fitnessNew <= BestFitness then
-         if fitnessNew < BestFitness then 
-            printf("\n\nMelhorado pela rainha1!\n")
-         end
-         
-         Foods(BestInd) = listaExecucao
-         listaExecucao = listaExecucaoNew 
-         BestFitness = fitnessNew
-    end
-    
-    q = ceil(rand()*2)
-    if q == 1 then 
-        try
-       [listaExecucaoNew, lastToPrintBetterN, tipo, fitnessNew]=melhoraPrimeiro(listaExecucao)
-   catch
-       printf("Erro!!! - não sei pq dá erro aqui.Desculpe-me não deu tempo de arrumar\n")
-   end
-   
-    else
-        
-         [listaExecucaoNew, lastToPrintBetterN] = otimizaWorst (listaExecucaoNew)
-         [fitnessNew, lastToPrintBetterN] = calcfitness(listaExecucaoNew)
-            
-    end
-     
-     
-//       res1 = (lastToPrintBetterN == lastToPrintBetter)
-//   fres = find(res1==%T)  Procura para verificar há algum valor true 
-//    if length(fres) ~= 0 &  fitnessNew <= BestFitness  then 
-
-    if fitnessNew <= BestFitness then
-          if fitnessNew < BestFitness then 
-            printf("Melhorado pela rainha2!\n")
-         end
-         
-        
-         Foods(BestInd) = listaExecucao
-         listaExecucao = listaExecucaoNew 
-         BestFitness = fitnessNew
-         lastToPrintBetter = lastToPrintBetterN
-    end
-  end
-  
-//  lastToPrintBetter = printseql(BestInd)
-//  Foods(paraexcluir) = BestFood
+  //  lastToPrintBetter = printseql(BestInd)
+  //  Foods(paraexcluir) = BestFood
+  hist = [hist BestFitness]
+  histmin = [histmin min(hist)]
   printf("Best fitness %d no r=%d BestInd %d\n", BestFitness, r, BestInd)
+   if meta >= BestFitness | maxt == r  then
+//    [l,c] = size(resultadoExp)
+    tfinal = getdate("s") - tinitEx
+    
+    onde = find(histmin==BestFitness)
+    onde = onde(1)
   
+    resultadoExp(expT,:) = [onde BestFitness tfinal] // quantidade de iterações fitness e tempo total
+    
+    break
+  end
+//    printf("MelhorAgora;%d\n", BestFitness)
   
   // Inicializa na primeira iteração do laço mais externo
   if r==1 then 
@@ -2031,17 +2053,17 @@ for r=1:runtime
   end
   
   
-  tFinal = getdate("s")
-  tFinalLinha = tFinal - tInitr
-  histTmp = [histTmp tFinalLinha]
-  gastoT = tFinal - tInit
-  printf("Tempo basto médio  %f nesta iteração %f em r %d\n", (gastoT/r),tFinalLinha, r)
-  
-  
-  hist = [hist BestFitness]
-  histmin = [histmin min(hist)]
+
+
   
   rand('seed',getdate('s'))
- end
+end
+end
 
-// COMANDO PARA GERAR O GRÁFICO DE GANTT --- pornografico
+printf("Arquivo: %s\n", artT)
+
+
+pngrafico
+
+//  plot2d(histmin)
+// COMANDO PARA GERAR O GRÁFICO DE GANTT --- pngrafico
