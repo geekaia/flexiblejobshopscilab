@@ -765,7 +765,7 @@ endfunction
 // Parâmetros de controle do Algoritmo ABC 
 NP = 2*num_maq // Tamanho da colônia = (abelhas empregadas + abelhas espectadoras)
 D = num_maq // o número de parâmetros do problema a ser otimizado 
-maxCycle =  50 
+maxCycle =  100 
 FoodNumber = maxCycle // quantidade de fontes de alimento é igual ao tamanho da metade da colônia
 limit = 5 // Uma fonte de alimento no qual poderá ser melhorado por meio do limite de triais e abandonado pelos seus empregados 
 // O número de ciclos por farrogeamento -- critério de parada
@@ -1213,7 +1213,7 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachin
     
     // Procura nas máquinas por um local que o início seja menor ou igual
     
-//    can = ceil(rand()*3)
+   
 
     listaMaqPos = [] // lista de tempos usados em cada máquina 
     tipo="generico"
@@ -1226,7 +1226,7 @@ function [listaOtimizada, dataprintseqBestPlace, tipo, fitnessNew]=findFitMachin
         gapBetter = 0 // o burado deve ser maior ou igual para ser melhor
         tipo = "WORSTFIT"
 //        printf("WORSTFIT\n")
-    elseif bestOrWorst == 4 & can == 1 then
+    elseif bestOrWorst == 4 then
          [listaOtimizada, dataprintseqBestPlace] = otimizaWorst (listaExc)
          tipo = "PIORLOCALIZADO"
          [fitnessNew, dataprintseqBestPlace] = calcfitness(listaOtimizada)
@@ -1879,7 +1879,7 @@ for r=1:runtime
      trial(ind)=0;
      
      // Quando acontecer de haver 50 iterações sem a geração de uma solução melhor novos individuos são gerados
-     if contadormelhora < 30 then
+     if contadormelhora < 10 then
         [listseqjb, listexec]= gen_Foods(1)
          
          Foods(ind) = listexec(1)
@@ -1891,13 +1891,13 @@ for r=1:runtime
           numInd=30
 //         printf("GERANDO %d NOVOS INDIVIDUOS!!!\n", numInd)
 //         [listseqjb, listexec]= gen_Foods(39)//numInd) // Old Way
-         [listseqjb, listexec2] = getFromTempera (60) // Retorna
+         [listseqjb, listexec2] = getFromTempera (50) // Retorna
          
          listexec = list()
          listsecT = list()
          [fitnesvetT, printseql]=list_fitess(listseqjb, listexec2)
          
-         for tdAd=1:39
+         for tdAd=1:30
              GlobalMinT = min(fitnesvetT)
              indexfitT = find(fitnesvetT==GlobalMinT)
              indexfitT = indexfitT(1)
